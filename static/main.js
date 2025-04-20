@@ -64,4 +64,7 @@ if (countdownDiv && progressBar) {
     setInterval(updateCountdown, 1000);
 }
 
-window.onload = fetchPosts;
+window.onload = () => {
+    fetchPosts();
+    setInterval(fetchPosts, 2000); // Poll every 2 seconds for new posts
+};
