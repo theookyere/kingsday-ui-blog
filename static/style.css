@@ -4,6 +4,10 @@ body {
     margin: 0;
     padding: 0;
 }
+body.dark-mode {
+    background: #181a1b;
+    color: #f6f6f6;
+}
 .container {
     max-width: 500px;
     margin: 40px auto;
@@ -12,10 +16,23 @@ body {
     padding: 2em 2em 1em 2em;
     box-shadow: 0 2px 16px rgba(0,0,0,0.09);
 }
+.dark-mode .container, body.dark-mode .container {
+    background: #232526;
+    color: #f6f6f6;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.18);
+}
 h1 {
     color: #ff7900;
     text-align: center;
     margin-bottom: 0.5em;
+}
+.dark-mode h1,
+.dark-mode h2,
+.dark-mode h3,
+.dark-mode h4,
+.dark-mode h5,
+.dark-mode h6 {
+    color: #ff7900;
 }
 #postForm {
     display: flex;
@@ -29,6 +46,12 @@ h1 {
     border: 1px solid #ff7900;
     margin-right: 0.5em;
 }
+.dark-mode input,
+.dark-mode textarea {
+    background: #232526;
+    color: #fff;
+    border: 1px solid #ff7900;
+}
 button {
     background: #ff7900;
     color: white;
@@ -37,6 +60,14 @@ button {
     border-radius: 6px;
     font-size: 1em;
     cursor: pointer;
+}
+.dark-mode #submit-btn {
+    background: #ff7900;
+    color: #fff;
+}
+.dark-mode #submit-btn:hover {
+    background: #ffe2b3;
+    color: #ff7900;
 }
 button:hover {
     background: #fff5d1;
@@ -107,6 +138,15 @@ button:hover {
     transition: transform 0.15s, box-shadow 0.15s, background 0.3s;
     border: 2px solid #ff7900;
 }
+.dark-mode .tikkie-support {
+    background: linear-gradient(90deg, #232526 60%, #ff7900 100%);
+    color: #ff7900;
+    border: 2px solid #ff7900;
+}
+.dark-mode .tikkie-support:hover {
+    background: #ff7900;
+    color: #fff;
+}
 .tikkie-support:hover {
     background: linear-gradient(90deg, #ffe2b3 60%, #ff7900 100%);
     color: #ff7900;
@@ -114,6 +154,31 @@ button:hover {
     transform: scale(1.06);
     box-shadow: 0 4px 18px rgba(255,121,0,0.22);
     text-decoration: none;
+}
+.blog-description {
+    text-align: center;
+    margin: 0 auto 1.5em auto;
+    max-width: 600px;
+    font-size: 1.13em;
+    line-height: 1.5;
+    word-break: break-word;
+}
+.dark-mode .blog-description {
+    color: #ffe2b3;
+}
+@media (max-width: 600px) {
+    .blog-description {
+        font-size: 1em;
+        padding: 0 10px;
+        text-align: center;
+    }
+}
+.dark-mode #cookie-banner {
+    background: #232526;
+    color: #ff7900;
+}
+.dark-mode #nl-flag-banner div {
+    filter: brightness(0.8) contrast(1.2);
 }
 
 /* Confetti Animation */
