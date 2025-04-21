@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
+from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import os
 import re
@@ -7,8 +8,15 @@ import re
 app = Flask(__name__)
 CORS(app)
 
-# In-memory storage for posts
-posts = []
+# Database config
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///local.db').replace('postgres://', 'postgresql://')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+
+class Post(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    text = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.String(32), nullable=False)
 
 # List of Dutch and English abusive words (expand as needed)
 ABUSIVE_WORDS = [
@@ -26,7 +34,10 @@ NAME_PATTERN = re.compile(r'(?:\b[A-Z][a-z]{2,}\b)')
 
 @app.route('/api/posts', methods=['GET'])
 def get_posts():
-    return jsonify(posts[::-1])  # newest first
+    posts = Post.query.order_by(Post.id.desc()).all()
+    return jsonify([
+        {'text': p.text, 'timestamp': p.timestamp} for p in posts
+    ])
 
 @app.route('/api/posts', methods=['POST'])
 def add_post():
@@ -43,18 +54,15 @@ def add_post():
         if phrase in lowered:
             return jsonify({'error': 'Negatieve of beledigende berichten zijn niet toegestaan.'}), 400
     # Name detection (Dutch/English style)
-    # Disallow any capitalized word not at the start, and not "Ik", "We", "Oranje", etc.
     allowed = {'Ik', 'We', 'Ons', 'Onze', 'Oranje', 'Koningsdag', 'Koning', 'Koningin', 'Nederland', 'NL', 'Feest'}
     tokens = re.findall(NAME_PATTERN, text)
     for name in tokens:
         if name not in allowed and not text.startswith(name):
             return jsonify({'error': 'Het is niet toegestaan om namen van personen te noemen.'}), 400
-    post = {
-        'text': text,
-        'timestamp': datetime.now().isoformat(timespec='seconds')
-    }
-    posts.append(post)
-    return jsonify(post), 201
+    post = Post(text=text, timestamp=datetime.now().isoformat(timespec='seconds'))
+    db.session.add(post)
+    db.session.commit()
+    return jsonify({'text': post.text, 'timestamp': post.timestamp}), 201
 
 @app.route('/')
 def index():
