@@ -36,7 +36,7 @@ class Post(db.Model):
 def get_posts():
     posts = Post.query.order_by(Post.id.desc()).all()
     return jsonify([
-        {'text': p.text, 'timestamp': p.timestamp} for p in posts
+        {'id': p.id, 'text': p.text, 'timestamp': p.timestamp} for p in posts
     ])
 
 @app.route('/api/posts', methods=['POST'])
