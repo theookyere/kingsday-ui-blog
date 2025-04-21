@@ -115,3 +115,14 @@ button:hover {
     box-shadow: 0 4px 18px rgba(255,121,0,0.22);
     text-decoration: none;
 }
+
+/* Confetti Animation */
+.confetti {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 999;
+}
