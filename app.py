@@ -64,6 +64,15 @@ def add_post():
     db.session.commit()
     return jsonify({'text': post.text, 'timestamp': post.timestamp}), 201
 
+@app.route('/api/posts/<int:post_id>', methods=['DELETE'])
+def delete_post(post_id):
+    post = Post.query.get(post_id)
+    if not post:
+        return jsonify({'error': 'Post not found'}), 404
+    db.session.delete(post)
+    db.session.commit()
+    return jsonify({'message': f'Post {post_id} deleted'}), 200
+
 @app.route('/initdb', methods=['POST'])
 def initdb():
     db.create_all()
