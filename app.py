@@ -1,17 +1,11 @@
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import os
 import re
 
 app = Flask(__name__)
 CORS(app)
-
-# SQLite database config (no env needed)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///local.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
 
 # List of Dutch and English abusive words (expand as needed)
 ABUSIVE_WORDS = [
@@ -27,17 +21,12 @@ ABUSIVE_PHRASES = [
 # Very basic name pattern (capitalized word, not at start of sentence)
 NAME_PATTERN = re.compile(r'(?:\b[A-Z][a-z]{2,}\b)')
 
-class Post(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    text = db.Column(db.Text, nullable=False)
-    timestamp = db.Column(db.String(32), nullable=False)
+# In-memory storage for posts
+posts = []
 
 @app.route('/api/posts', methods=['GET'])
 def get_posts():
-    posts = Post.query.order_by(Post.id.desc()).all()
-    return jsonify([
-        {'id': p.id, 'text': p.text, 'timestamp': p.timestamp} for p in posts
-    ])
+    return jsonify(posts[::-1])  # newest first
 
 @app.route('/api/posts', methods=['POST'])
 def add_post():
@@ -59,24 +48,20 @@ def add_post():
     for name in tokens:
         if name not in allowed and not text.startswith(name):
             return jsonify({'error': 'Het is niet toegestaan om namen van personen te noemen.'}), 400
-    post = Post(text=text, timestamp=datetime.now().isoformat(timespec='seconds'))
-    db.session.add(post)
-    db.session.commit()
-    return jsonify({'text': post.text, 'timestamp': post.timestamp}), 201
+    post = {
+        'text': text,
+        'timestamp': datetime.now().isoformat(timespec='seconds')
+    }
+    posts.append(post)
+    return jsonify(post), 201
 
 @app.route('/api/posts/<int:post_id>', methods=['DELETE'])
 def delete_post(post_id):
-    post = Post.query.get(post_id)
-    if not post:
+    if 0 <= post_id < len(posts):
+        posts.pop(-(post_id+1))
+        return jsonify({'message': f'Post {post_id} deleted'}), 200
+    else:
         return jsonify({'error': 'Post not found'}), 404
-    db.session.delete(post)
-    db.session.commit()
-    return jsonify({'message': f'Post {post_id} deleted'}), 200
-
-@app.route('/initdb', methods=['POST'])
-def initdb():
-    db.create_all()
-    return 'Database initialized!', 200
 
 @app.route('/')
 def index():
