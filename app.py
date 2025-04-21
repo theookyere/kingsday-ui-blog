@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
+from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import os
 import re
@@ -7,8 +8,10 @@ import re
 app = Flask(__name__)
 CORS(app)
 
-# In-memory storage for posts
-posts = []
+# Database config
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///local.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
 
 # List of Dutch and English abusive words (expand as needed)
 ABUSIVE_WORDS = [
@@ -24,9 +27,17 @@ ABUSIVE_PHRASES = [
 # Very basic name pattern (capitalized word, not at start of sentence)
 NAME_PATTERN = re.compile(r'(?:\b[A-Z][a-z]{2,}\b)')
 
+class Post(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    text = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.String(32), nullable=False)
+
 @app.route('/api/posts', methods=['GET'])
 def get_posts():
-    return jsonify(posts[::-1])  # newest first
+    posts = Post.query.order_by(Post.id.desc()).all()
+    return jsonify([
+        {'text': p.text, 'timestamp': p.timestamp} for p in posts
+    ])
 
 @app.route('/api/posts', methods=['POST'])
 def add_post():
@@ -48,16 +59,19 @@ def add_post():
     for name in tokens:
         if name not in allowed and not text.startswith(name):
             return jsonify({'error': 'Het is niet toegestaan om namen van personen te noemen.'}), 400
-    post = {
-        'text': text,
-        'timestamp': datetime.now().isoformat(timespec='seconds')
-    }
-    posts.append(post)
-    return jsonify(post), 201
+    post = Post(text=text, timestamp=datetime.now().isoformat(timespec='seconds'))
+    db.session.add(post)
+    db.session.commit()
+    return jsonify({'text': post.text, 'timestamp': post.timestamp}), 201
 
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/initdb', methods=['POST'])
+def initdb():
+    db.create_all()
+    return 'Database initialized!', 200
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

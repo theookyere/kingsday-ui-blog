@@ -3,3 +3,4 @@ flask-cors
 gunicorn
 sqlalchemy
 psycopg2-binary
+pymysql
