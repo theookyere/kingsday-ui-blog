@@ -182,6 +182,22 @@ button:hover {
     filter: none;
 }
 
+/* Make chat posts visible and readable in dark mode */
+.dark-mode #posts > div, .dark-mode .post {
+    background: #232526;
+    color: #fff;
+    border: 1px solid #444;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.14);
+}
+.dark-mode #posts input, .dark-mode #posts textarea {
+    background: #181a1b;
+    color: #fff;
+    border: 1px solid #ff7900;
+}
+.dark-mode #posts {
+    background: none;
+}
+
 /* Confetti Animation */
 .confetti {
   position: fixed;
